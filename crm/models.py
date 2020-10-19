@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -36,7 +37,7 @@ class Tag(models.Model):
 
 
 class CustomerFollowUp(models.Model):
-    '''客户跟进表'''
+    """客户跟进表"""
     customer = models.ForeignKey('Customer')
     content = models.TextField(verbose_name='跟进内容')
     consultant = models.ForeignKey('UserProfile')
@@ -55,7 +56,7 @@ class CustomerFollowUp(models.Model):
 
 
 class Course(models.Model):
-    '''课程表'''
+    """课程表"""
     name = models.CharField(max_length=64, unique=True)
     price = models.PositiveSmallIntegerField()
     period = models.PositiveSmallIntegerField(verbose_name="周期（月）")
@@ -66,7 +67,7 @@ class Course(models.Model):
 
 
 class Branch(models.Model):
-    '''校区'''
+    """校区"""
     name = models.CharField(max_length=128, unique=True)
     addr = models.CharField(max_length=128)
 
@@ -75,7 +76,7 @@ class Branch(models.Model):
 
 
 class ClassList(models.Model):
-    '''班级表'''
+    """班级表"""
     branch = models.ForeignKey('Branch')
     course = models.ForeignKey('Course')
     class_type_choices = (
@@ -96,7 +97,7 @@ class ClassList(models.Model):
 
 
 class CourseRecord(models.Model):
-    '''上课记录'''
+    """上课记录"""
     from_class = models.ForeignKey('ClassList', verbose_name='班级')
     day_num = models.PositiveSmallIntegerField(verbose_name='第几节')
     teacher = models.ForeignKey('UserProfile')
@@ -110,24 +111,82 @@ class CourseRecord(models.Model):
         return '%s %s' % (self.from_class, self.day_num)
 
     class Meta:
-        unique_together = ('from_class', 'day')
+        unique_together = ('from_class', 'day_num')
 
 
 class StudyRecord(models.Model):
-    '''学习记录'''
-    pass
+    """学习记录"""
+    student = models.ForeignKey('Enrollment')
+    course_record = models.ForeignKey('CourseRecord')
+    attendance_choices = (
+        (0, '已签到')
+        (1, '迟到')
+        (2, '缺勤')
+        (3, '早退')
+    )
+    attendance = models.SmallIntegerField(choices=attendance_choices, default=0)
+    score_choices = (
+        (100, 'A+')
+        (90, 'A')
+        (85, 'B+')
+        (80, 'B')
+        (75, 'B-')
+        (70, 'C+')
+        (60, 'C')
+        (40, 'C-')
+        (-50, 'D')
+        (-100, 'COPY')
+        (0, 'N/A')
+    )
+    score = models.SmallIntegerField(choices=score_choices)
+    memo = models.TextField(blank=True, null=True)
+    date = models.DateTimeField(auto_created=True)
+
+    def __dir__(self):
+        return '%s &s %s' % (self.student, self.course_record, self.score)
 
 
 class Enrollment(models.Model):
-    '''报名表'''
-    pass
+    """报名表"""
+    customer = models.ForeignKey('Customer')
+    enrolled_class = models.ForeignKey('ClassList', verbose_name='所报班级')
+    consultant = models.ForeignKey('UserProfile', verbose_name='课程顾问')
+    contract_aggreed = models.BooleanField(default=False, verbose_name="学院已同意合同条款")
+    contract_approved = models.BooleanField(default=False, verbose_name='合同已审核')
+    date = models.DateTimeField(auto_created=True)
+
+    def __str__(self):
+        return '%s %s' % (self.customer, self.enrolled_class)
+
+    class Meta:
+        unique_together = ('customer', 'enrolled_class')
+
+
+class Payment(models.Model):
+    """缴费记录"""
+    customer = models.ForeignKey('Customer')
+    course = models.ForeignKey('Course')
+    amount = models.PositiveIntegerField(verbose_name="金额",default=500)
+    consultant = models.ForeignKey('UserProfile')
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '%s %s' %(self.customer,self.amount)
 
 
 class UserProfile(models.Model):
-    '''账号表'''
-    pass
+    """账号表"""
+    user = models.OneToOneField(User)
+    name = models.CharField(max_length=32)
+    roles = models.ManyToManyField('Role',blank=True,null=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Role(models.Model):
-    '''角色表'''
-    pass
+    """角色表"""
+    name = models.CharField(max_length=32,unique=True)
+
+    def __str__(self):
+        return  self.name
