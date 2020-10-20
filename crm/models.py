@@ -20,9 +20,9 @@ class Customer(models.Model):
     )
     source = models.SmallIntegerField(choices=source_choices)
     referral_from = models.CharField(verbose_name='转介绍人QQ', max_length=64, blank=True, null=True)
-    consult_course = models.ForeignKey('Course', verbose_name="咨询课程")
+    consult_course = models.ForeignKey('Course', verbose_name="咨询课程", on_delete=models.CASCADE)
     content = models.TextField(verbose_name="咨询详情")
-    consultant = models.ForeignKey('UserProfile')
+    consultant = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -38,9 +38,9 @@ class Tag(models.Model):
 
 class CustomerFollowUp(models.Model):
     """客户跟进表"""
-    customer = models.ForeignKey('Customer')
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     content = models.TextField(verbose_name='跟进内容')
-    consultant = models.ForeignKey('UserProfile')
+    consultant = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     intention_choices = (
         (0, '2周内报名'),
         (1, '1个月内报名'),
@@ -77,8 +77,8 @@ class Branch(models.Model):
 
 class ClassList(models.Model):
     """班级表"""
-    branch = models.ForeignKey('Branch')
-    course = models.ForeignKey('Course')
+    branch = models.ForeignKey('Branch', on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
     class_type_choices = (
         (0, '面授（脱产）'),
         (1, '面授（周末）'),
@@ -98,9 +98,9 @@ class ClassList(models.Model):
 
 class CourseRecord(models.Model):
     """上课记录"""
-    from_class = models.ForeignKey('ClassList', verbose_name='班级')
+    from_class = models.ForeignKey('ClassList', verbose_name='班级', on_delete=models.CASCADE)
     day_num = models.PositiveSmallIntegerField(verbose_name='第几节')
-    teacher = models.ForeignKey('UserProfile')
+    teacher = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     has_homework = models.BooleanField(default=True)
     homework_title = models.CharField(max_length=128, blank=True, null=True)
     homework_content = models.TextField()
@@ -116,26 +116,26 @@ class CourseRecord(models.Model):
 
 class StudyRecord(models.Model):
     """学习记录"""
-    student = models.ForeignKey('Enrollment')
-    course_record = models.ForeignKey('CourseRecord')
+    student = models.ForeignKey('Enrollment', on_delete=models.CASCADE)
+    course_record = models.ForeignKey('CourseRecord', on_delete=models.CASCADE)
     attendance_choices = (
-        (0, '已签到')
-        (1, '迟到')
-        (2, '缺勤')
-        (3, '早退')
+        (0, '已签到'),
+        (1, '迟到'),
+        (2, '缺勤'),
+        (3, '早退'),
     )
     attendance = models.SmallIntegerField(choices=attendance_choices, default=0)
     score_choices = (
-        (100, 'A+')
-        (90, 'A')
-        (85, 'B+')
-        (80, 'B')
-        (75, 'B-')
-        (70, 'C+')
-        (60, 'C')
-        (40, 'C-')
-        (-50, 'D')
-        (-100, 'COPY')
+        (100, 'A+'),
+        (90, 'A'),
+        (85, 'B+'),
+        (80, 'B'),
+        (75, 'B-'),
+        (70, 'C+'),
+        (60, 'C'),
+        (40, 'C-'),
+        (-50, 'D'),
+        (-100, 'COPY'),
         (0, 'N/A')
     )
     score = models.SmallIntegerField(choices=score_choices)
@@ -148,9 +148,9 @@ class StudyRecord(models.Model):
 
 class Enrollment(models.Model):
     """报名表"""
-    customer = models.ForeignKey('Customer')
-    enrolled_class = models.ForeignKey('ClassList', verbose_name='所报班级')
-    consultant = models.ForeignKey('UserProfile', verbose_name='课程顾问')
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    enrolled_class = models.ForeignKey('ClassList', verbose_name='所报班级', on_delete=models.CASCADE)
+    consultant = models.ForeignKey('UserProfile', verbose_name='课程顾问', on_delete=models.CASCADE)
     contract_aggreed = models.BooleanField(default=False, verbose_name="学院已同意合同条款")
     contract_approved = models.BooleanField(default=False, verbose_name='合同已审核')
     date = models.DateTimeField(auto_created=True)
@@ -164,21 +164,21 @@ class Enrollment(models.Model):
 
 class Payment(models.Model):
     """缴费记录"""
-    customer = models.ForeignKey('Customer')
-    course = models.ForeignKey('Course')
-    amount = models.PositiveIntegerField(verbose_name="金额",default=500)
-    consultant = models.ForeignKey('UserProfile')
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField(verbose_name="金额", default=500)
+    consultant = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '%s %s' %(self.customer,self.amount)
+        return '%s %s' % (self.customer, self.amount)
 
 
 class UserProfile(models.Model):
     """账号表"""
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=32)
-    roles = models.ManyToManyField('Role',blank=True,null=True)
+    roles = models.ManyToManyField('Role', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -186,7 +186,7 @@ class UserProfile(models.Model):
 
 class Role(models.Model):
     """角色表"""
-    name = models.CharField(max_length=32,unique=True)
+    name = models.CharField(max_length=32, unique=True)
 
     def __str__(self):
-        return  self.name
+        return self.name
