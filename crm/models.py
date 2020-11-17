@@ -25,15 +25,10 @@ class Customer(models.Model):
     consultant = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField("Tag", blank=True, null=True)
-    intention_choices = (
-        (0, '2周内报名'),
-        (1, '1个月内报名'),
-        (2, '近期无报名计划'),
-        (3, '已在其它机构报名'),
-        (4, '已报名'),
-        (5, '已拉黑')
-    )
-    status = models.SmallIntegerField(choices=intention_choices)
+    status_choices = ((0, '已报名'),
+                      (1, '未报名'),
+                      )
+    status = models.SmallIntegerField(choices=status_choices)
 
     def __str__(self):
         return self.qq
@@ -58,6 +53,15 @@ class CustomerFollowUp(models.Model):
     content = models.TextField(verbose_name='跟进内容')
     consultant = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    intention_choices = (
+        (0, '2周内报名'),
+        (1, '1个月内报名'),
+        (2, '近期无报名计划'),
+        (3, '已在其它机构报名'),
+        (4, '已报名'),
+        (5, '已拉黑')
+    )
+    intention = models.SmallIntegerField(choices=intention_choices)
 
     def __str__(self):
         return "%s %s" % (self.customer.qq, self.intention)
